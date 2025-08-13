@@ -124,8 +124,6 @@ export default function Viewer() {
         borderRadius: '16px',
         color: '#666'
       }}>
-        <p>👨‍👩‍👧‍👦 Family members take turns each month!</p>
-        <p>Updates automatically when admin makes picks.</p>
       </div>
     </div>
   );

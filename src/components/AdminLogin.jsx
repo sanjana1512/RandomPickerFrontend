@@ -4,7 +4,7 @@ import { useState } from 'react';
 export default function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const ADMIN_PASSWORD = 'adminnaveena'; // Family-friendly password
+  const ADMIN_PASSWORD = "admin"; // Family-friendly password
 
   function handleSubmit(e) {
     e.preventDefault();
