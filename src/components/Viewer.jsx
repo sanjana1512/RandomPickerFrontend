@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const API_BASE = 'https://randompickerbackend.onrender.com';
+const API_BASE = 'https://randompickerbackend.onrender.com/api';
 
 export default function Viewer() {
   const [winner, setWinner] = useState(null);

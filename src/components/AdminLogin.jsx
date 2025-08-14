@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const API_BASE = 'https://randompickerbackend.onrender.com';
+const API_BASE = 'https://randompickerbackend.onrender.com/api';
 
 export default function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState('');

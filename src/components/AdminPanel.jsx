@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-const API_BASE ='https://randompickerbackend.onrender.com';
+const API_BASE ='https://randompickerbackend.onrender.com/api';
 
 // Helper function to get auth headers
 function getAuthHeaders() {
