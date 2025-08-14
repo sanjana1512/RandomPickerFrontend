@@ -66,8 +66,7 @@ export default function Viewer() {
   return (
     <div className="viewer-container">
       <div className="viewer-header">
-        <h2>👁️ Family View</h2>
-        <p>See who's been selected for family activities!</p>
+        <h2>👁️View</h2>
       </div>
 
       <div className="viewer-controls">
