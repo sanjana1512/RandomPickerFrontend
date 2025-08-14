@@ -1,17 +1,45 @@
-// Simple admin login form (frontend only, no backend)
 import { useState } from 'react';
+
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
 
 export default function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const ADMIN_PASSWORD = "admin"; // Family-friendly password
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      onLogin();
-    } else {
-      setError('Incorrect password! Try "family2025"');
+    if (!password.trim()) {
+      setError('Please enter password');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE}/admin/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Store admin token
+        sessionStorage.setItem('adminToken', data.token);
+        onLogin();
+      } else {
+        setError(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Network error. Please check if server is running.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -27,9 +55,12 @@ export default function AdminLogin({ onLogin }) {
           placeholder="Enter admin password"
           value={password}
           onChange={e => setPassword(e.target.value)}
+          disabled={loading}
         />
-        <button type="submit">🔓 Login</button>
-        {error && <div className="error-message">{error}</div>}
+        <button type="submit" disabled={loading}>
+          {loading ? '🔄 Logging in...' : '🔐 Login'}
+        </button>
+        {error && <div className="error-message">❌ {error}</div>}
       </form>
     </div>
   );

@@ -1,129 +1,183 @@
-// Viewer can see the current month's pick and pick history
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-function getMonthKey() {
-  const now = new Date();
-  return `${now.getFullYear()}-${now.getMonth() + 1}`;
-}
-
-function getMonthName(monthKey) {
-  const [year, month] = monthKey.split('-');
-  const date = new Date(year, month - 1);
-  return date.toLocaleString('default', { month: 'long', year: 'numeric' });
-}
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
 
 export default function Viewer() {
-  const [picked, setPicked] = useState(() => {
-    return JSON.parse(localStorage.getItem('picked') || '{}');
-  });
-  const [participants, setParticipants] = useState(() => {
-    return JSON.parse(localStorage.getItem('participants') || '[]');
-  });
+  const [winner, setWinner] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
+  // Auto-load current winner on component mount
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPicked(JSON.parse(localStorage.getItem('picked') || '{}'));
-      setParticipants(JSON.parse(localStorage.getItem('participants') || '[]'));
-    }, 2000); // Poll every 2s for updates
-    return () => clearInterval(interval);
+    viewWinner();
   }, []);
 
-  const monthKey = getMonthKey();
-  const currentWinnerName = picked[monthKey];
-  const currentWinner = participants.find(p => p.name === currentWinnerName);
+  async function viewWinner() {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_BASE}/viewer/current`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        if (data.message) {
+          // No winner picked yet
+          setWinner(null);
+          setError(data.message);
+        } else {
+          setWinner(data);
+        }
+        setShowHistory(false);
+      } else {
+        setError('Failed to fetch current winner');
+      }
+    } catch (err) {
+      console.error('Error fetching winner:', err);
+      setError('Network error. Please check if server is running.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function fetchHistory() {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${API_BASE}/viewer/history`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setHistory(data);
+        setShowHistory(true);
+        setWinner(null);
+      } else {
+        setError('Failed to fetch history');
+      }
+    } catch (err) {
+      console.error('Error fetching history:', err);
+      setError('Network error. Please check if server is running.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <div className="viewer-section">
-      <div className="current-pick">
-        <h2>🗓 {getMonthName(monthKey)} Winner</h2>
-        {currentWinner ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            {currentWinner.image ? (
-              <img 
-                src={currentWinner.image} 
-                alt={currentWinner.name} 
-                style={{
-                  width: '150px',
-                  height: '150px',
-                  objectFit: 'cover',
-                  borderRadius: '50%',
-                  border: '5px solid #4caf50',
-                  boxShadow: '0 8px 25px rgba(76, 175, 80, 0.3)'
-                }}
-              />
+    <div className="viewer-container">
+      <div className="viewer-header">
+        <h2>👁️ Family View</h2>
+        <p>See who's been selected for family activities!</p>
+      </div>
+
+      <div className="viewer-controls">
+        <button 
+          className={`view-btn ${!showHistory ? 'active' : ''}`}
+          onClick={viewWinner}
+          disabled={loading}
+        >
+          {loading && !showHistory ? '⏳ Loading...' : '🏆 Current Winner'}
+        </button>
+        <button 
+          className={`view-btn ${showHistory ? 'active' : ''}`}
+          onClick={fetchHistory}
+          disabled={loading}
+        >
+          {loading && showHistory ? '⏳ Loading...' : '📅 View History'}
+        </button>
+      </div>
+
+      <div className="viewer-content">
+        {error && (
+          <div className="error-message">
+            ⚠️ {error}
+          </div>
+        )}
+
+        {showHistory ? (
+          <div className="history-view">
+            <h3>📅 Monthly Pick History</h3>
+            {history.length === 0 ? (
+              <div className="no-data">
+                <p>📝 No history available yet.</p>
+                <p>Ask an admin to pick the first winner!</p>
+              </div>
             ) : (
-              <div style={{
-                width: '150px',
-                height: '150px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #4caf50, #45a049)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '4rem',
-                color: 'white',
-                border: '5px solid #4caf50',
-                boxShadow: '0 8px 25px rgba(76, 175, 80, 0.3)'
-              }}>
-                👤
+              <div className="history-grid">
+                {history.map((item, idx) => (
+                  <div key={idx} className="history-card">
+                    <div className="history-month">{item.month}</div>
+                    <div className="history-winner">
+                      {item.image ? (
+                        <img 
+                          src={item.image} 
+                          alt={item.personName} 
+                          className="history-winner-img" 
+                        />
+                      ) : (
+                        <div className="history-winner-img placeholder">
+                          👤
+                        </div>
+                      )}
+                      <div className="history-winner-name">{item.personName}</div>
+                    </div>
+                    <div className="history-date">
+                      {new Date(item.pickedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
-            <div className="current-winner">🎉 {currentWinner.name} 🎉</div>
           </div>
-        ) : currentWinnerName ? (
-          <div className="current-winner">🎉 {currentWinnerName} 🎉</div>
         ) : (
-          <div className="no-pick">🤔 No one has been picked yet this month!</div>
+          <div className="current-winner-view">
+            {winner ? (
+              <div className="current-winner-card">
+                <h3>🏆 This Month's Winner</h3>
+                <div className="winner-display">
+                  {winner.image ? (
+                    <img 
+                      src={winner.image} 
+                      alt={winner.personName} 
+                      className="current-winner-img" 
+                    />
+                  ) : (
+                    <div className="current-winner-img placeholder">
+                      👤
+                    </div>
+                  )}
+                  <div className="current-winner-name">
+                    🎉 {winner.personName} 🎉
+                  </div>
+                </div>
+                <div className="winner-details">
+                  <p><strong>Month:</strong> {winner.month}</p>
+                  <p><strong>Selected on:</strong> {new Date(winner.pickedAt).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}</p>
+                </div>
+              </div>
+            ) : (
+              !loading && (
+                <div className="no-winner">
+                  <div className="no-winner-icon">🎲</div>
+                  <h3>No Winner Yet!</h3>
+                  <p>No one has been picked for this month yet.</p>
+                  <p>Ask an admin to pick someone!</p>
+                </div>
+              )
+            )}
+          </div>
         )}
-      </div>
-      
-      <div className="history-section">
-        <h3>📅 Previous Monthly Winners</h3>
-        {Object.keys(picked).length === 0 ? (
-          <p style={{ color: '#666', fontStyle: 'italic', textAlign: 'center' }}>
-            No picks yet! Check back after the admin picks someone.
-          </p>
-        ) : (
-          <ul className="history-list">
-            {Object.entries(picked)
-              .sort(([a], [b]) => b.localeCompare(a)) // Sort newest first
-              .map(([month, p]) => {
-                const part = participants.find(x => x.name === p);
-                return (
-                  <li key={month} className="history-item">
-                    <span style={{ fontWeight: 'bold', minWidth: '150px' }}>
-                      {getMonthName(month)}:
-                    </span>
-                    {part && part.image ? (
-                      <img src={part.image} alt={part.name} className="history-img" />
-                    ) : (
-                      <div className="history-img" style={{
-                        background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '1rem',
-                        color: 'white'
-                      }}>
-                        👤
-                      </div>
-                    )}
-                    <span style={{ fontSize: '1.1rem', fontWeight: '600' }}>{p}</span>
-                  </li>
-                );
-              })}
-          </ul>
-        )}
-      </div>
-      
-      <div style={{ 
-        textAlign: 'center', 
-        marginTop: '2rem', 
-        padding: '1rem',
-        background: 'linear-gradient(135deg, #e3f2fd, #f3e5f5)',
-        borderRadius: '16px',
-        color: '#666'
-      }}>
       </div>
     </div>
   );
