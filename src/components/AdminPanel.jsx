@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
+const API_BASE ='https://randompickerbackend.onrender.com';
 
 // Helper function to get auth headers
 function getAuthHeaders() {
@@ -218,7 +218,7 @@ export default function AdminPanel({ onLogout }) {
   return (
     <div className="admin-panel">
       <div className="admin-header">
-        <h2>👑 Family Admin Panel</h2>
+        <h2>👑Admin Panel</h2>
         <button className="logout-btn" onClick={handleLogout} disabled={loading}>
           🚪 Logout
         </button>
@@ -235,7 +235,7 @@ export default function AdminPanel({ onLogout }) {
       </form>
       
       <div className="participants-list">
-        <h3>👨‍👩‍👧‍👦 Family Members ({participants.length})</h3>
+        <h3>👨‍👩‍👧‍👦 Participants ({participants.length})</h3>
         <div className="participants-grid">
           {participants.map(p => (
             <div className="participant-card" key={p._id}>

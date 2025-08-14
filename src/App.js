@@ -40,8 +40,7 @@ function App() {
   return (
     <div className="container">
       <div className="family-card">
-        <h1>🏠 Family Participant Picker</h1>
-        <p>A fun way to pick family members for monthly activities! 👨‍👩‍👧‍👦</p>
+        <h1>🏠Participant Picker</h1>
       </div>
       
       <header>
@@ -50,7 +49,7 @@ function App() {
             className={view === 'viewer' ? 'active' : ''}
             onClick={() => switchToView('viewer')}
           >
-            👀 Family View
+            👀 Viewer
           </button>
           <button 
             className={view === 'admin' ? 'active' : ''}
