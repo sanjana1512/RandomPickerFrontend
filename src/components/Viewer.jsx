@@ -75,14 +75,14 @@ export default function Viewer() {
           onClick={viewWinner}
           disabled={loading}
         >
-          {loading && !showHistory ? '⏳ Loading...' : '🏆 Current Winner'}
+          {loading && !showHistory ? '⏳ Loading...' : '🏆 Current Selected person'}
         </button>
         <button 
           className={`view-btn ${showHistory ? 'active' : ''}`}
           onClick={fetchHistory}
           disabled={loading}
         >
-          {loading && showHistory ? '⏳ Loading...' : '📅 View History'}
+          {loading && showHistory ? '⏳ Loading...' : ' View History'}
         </button>
       </div>
 
@@ -95,7 +95,7 @@ export default function Viewer() {
 
         {showHistory ? (
           <div className="history-view">
-            <h3>📅 Monthly Pick History</h3>
+            <h3>Monthly Pick History</h3>
             {history.length === 0 ? (
               <div className="no-data">
                 <p>📝 No history available yet.</p>
