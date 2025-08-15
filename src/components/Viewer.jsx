@@ -136,7 +136,7 @@ export default function Viewer() {
           <div className="current-winner-view">
             {winner ? (
               <div className="current-winner-card">
-                <h3>🏆 This Month's Winner</h3>
+                <h3>🏆 This Month's Selected Name in Draw</h3>
                 <div className="winner-display">
                   {winner.image ? (
                     <img 
